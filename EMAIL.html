@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>邮件发送工具</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+    
+    .header p {
+      opacity: 0.9;
+    }
+    
+    .content {
+      padding: 30px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+    
+    @media (max-width: 768px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .form-section, .templates-section {
+      background: #f8f9fa;
+      padding: 25px;
+      border-radius: 10px;
+      border: 1px solid #e9ecef;
+    }
+    
+    h2 {
+      color: #667eea;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #667eea;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #495057;
+    }
+    
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+    
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    textarea {
+      min-height: 150px;
+      resize: vertical;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      flex: 1;
+    }
+    
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+    
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+    
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .status {
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      display: none;
+    }
+    
+    .success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      display: block;
+    }
+    
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      display: block;
+    }
+    
+    .template-item {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #e9ecef;
+      transition: transform 0.3s;
+    }
+    
+    .template-item:hover {
+      transform: translateX(5px);
+      border-color: #667eea;
+    }
+    
+    .template-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .template-name {
+      font-weight: bold;
+      color: #667eea;
+    }
+    
+    .template-actions {
+      display: flex;
+      gap: 5px;
+    }
+    
+    .template-btn {
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+    
+    .no-templates {
+      text-align: center;
+      color: #6c757d;
+      font-style: italic;
+      padding: 20px;
+    }
+    
+    .email-list {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 20px;
+    }
+    
+    .email-item {
+      background: white;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      border-left: 4px solid #667eea;
+    }
+    
+    /* 文件上传样式 */
+    .file-item {
+      background: white;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      border-left: 4px solid #28a745;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    #attachments {
+      padding: 8px;
+      border: 2px dashed #6c757d;
+      border-radius: 8px;
+      background: #f8f9fa;
+      cursor: pointer;
+    }
+    
+    .progress-container {
+      margin-top: 15px;
+      display: none;
+    }
+    
+    .progress-bar {
+      width: 100%;
+      height: 20px;
+      background: #e9ecef;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 5px;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 10px;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    
+    .progress-text {
+      text-align: center;
+      font-size: 12px;
+      color: #6c757d;
+    }
+    
+    .auth-warning {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      color: #856404;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .auth-warning a {
+      color: #0056b3;
+      text-decoration: underline;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📧 邮件发送工具</h1>
+      <p>发送邮件并支持附件上传功能</p>
+    </div>
+    
+    <div id="authWarning" class="auth-warning" style="display: none;"></div>
+    
+    <div class="content">
+      <div class="form-section">
+        <h2>撰写新邮件</h2>
+        <form id="emailForm">
+          <div class="form-group">
+            <label for="recipient">收件人邮箱：</label>
+            <input type="email" id="recipient" required placeholder="example@gmail.com">
+          </div>
+          
+          <div class="form-group">
+            <label for="subject">邮件主题：</label>
+            <input type="text" id="subject" required placeholder="邮件主题">
+          </div>
+          
+          <div class="form-group">
+            <label for="body">邮件内容：</label>
+            <textarea id="body" required placeholder="请输入邮件内容..."></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label for="attachments">附件：</label>
+            <input type="file" id="attachments" multiple>
+            <div style="font-size: 12px; color: #6c757d; margin-top: 5px;">
+              支持图片、文档、音频文件，单个文件最大25MB
+            </div>
+            <div id="fileList" style="margin-top: 10px;"></div>
+          </div>
+          
+          <div class="progress-container" id="uploadProgress">
+            <div class="progress-bar">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">0%</div>
+          </div>
+          
+          <div class="button-group">
+            <button type="submit" class="btn-primary" id="sendBtn">发送邮件</button>
+            <button type="button" class="btn-success" id="saveTemplateBtn">保存为模板</button>
+            <button type="button" class="btn-secondary" onclick="loadRecentEmails()">查看最近邮件</button>
+          </div>
+        </form>
+        
+        <div id="status" class="status"></div>
+      </div>
+      
+      <div class="templates-section">
+        <h2>邮件模板</h2>
+        <div id="templatesList">
+          <div class="no-templates">暂无模板，请先保存一个模板</div>
+        </div>
+        
+        <h2 style="margin-top: 30px;">最近邮件</h2>
+        <div id="recentEmails" class="email-list">
+          <div class="no-templates">点击"查看最近邮件"按钮加载</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('邮件发送工具初始化...');
+      
+      // 检查连接
+      testConnection();
+      
+      // 检查授权
+      checkAuth();
+      
+      // 加载模板
+      loadTemplates();
+      
+      // 表单提交
+      document.getElementById('emailForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        sendEmail();
+      });
+      
+      // 保存模板
+      document.getElementById('saveTemplateBtn').addEventListener('click', function() {
+        const subject = document.getElementById('subject').value;
+        const body = document.getElementById('body').value;
+        
+        if (!subject || !body) {
+          showStatus('请填写主题和内容后再保存模板', 'error');
+          return;
+        }
+        
+        const name = prompt('请输入模板名称：');
+        if (name) {
+          saveTemplate(name, subject, body);
+        }
+      });
+      
+      // 文件上传监听
+      document.getElementById('attachments').addEventListener('change', handleFileSelect);
+    });
+    
+    // 测试连接
+    function testConnection() {
+      google.script.run
+        .withSuccessHandler(function(result) {
+          console.log('服务器连接正常：', result);
+        })
+        .withFailureHandler(function(error) {
+          console.error('连接失败：', error);
+          showStatus('服务器连接失败，请刷新页面重试', 'error');
+        })
+        .testConnection();
+    }
+    
+    // 检查授权
+    function checkAuth() {
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (!result.authorized) {
+            showAuthWarning(result);
+          }
+        })
+        .withFailureHandler(function(error) {
+          console.error('授权检查失败：', error);
+        })
+        .checkAuthorization();
+    }
+    
+    // 显示授权警告
+    function showAuthWarning(result) {
+      const warningDiv = document.getElementById('authWarning');
+      warningDiv.style.display = 'block';
+      warningDiv.innerHTML = `
+        <h3 style="margin-top: 0; color: #856404;">⚠️ 需要授权</h3>
+        <p>邮件发送工具需要访问您的Google Drive来存储附件文件。</p>
+        <p><strong>授权步骤：</strong></p>
+        <ol>
+          <li><a href="${result.authUrl}" target="_blank">点击这里打开授权页面</a></li>
+          <li>选择您的Google账户</li>
+          <li>点击"允许"按钮授予权限</li>
+          <li>返回本页面并刷新</li>
+        </ol>
+        <p style="font-size: 12px; margin-top: 10px;">
+          注意：如果不授权，您仍然可以发送邮件，但无法使用附件功能。
+        </p>
+      `;
+    }
+    
+    // 处理文件选择
+    function handleFileSelect(event) {
+      const files = event.target.files;
+      const fileList = document.getElementById('fileList');
+      
+      if (files.length === 0) {
+        fileList.innerHTML = '<div style="color: #6c757d; font-style: italic;">无附件</div>';
+        return;
+      }
+      
+      let html = '';
+      let totalSize = 0;
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        totalSize += file.size;
+        
+        const fileSize = file.size > 1024 * 1024 
+          ? (file.size / (1024 * 1024)).toFixed(2) + ' MB'
+          : (file.size / 1024).toFixed(2) + ' KB';
+        
+        html += `
+          <div class="file-item" id="file-${i}">
+            <div>
+              <strong>${file.name}</strong>
+              <div style="font-size: 12px; color: #6c757d;">
+                大小: ${fileSize} | 类型: ${file.type || '未知'}
+              </div>
+            </div>
+            <button type="button" onclick="removeFile(${i})" style="
+              background: #dc3545;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              padding: 4px 8px;
+              cursor: pointer;
+              font-size: 12px;
+            ">移除</button>
+          </div>
+        `;
+      }
+      
+      // 检查总大小
+      if (totalSize > 50 * 1024 * 1024) {
+        showStatus('总文件大小超过50MB限制', 'error');
+        event.target.value = '';
+        fileList.innerHTML = '<div style="color: #6c757d; font-style: italic;">无附件</div>';
+        return;
+      }
+      
+      fileList.innerHTML = html;
+    }
+    
+    // 移除文件
+    function removeFile(index) {
+      const input = document.getElementById('attachments');
+      const files = Array.from(input.files);
+      
+      if (index >= 0 && index < files.length) {
+        files.splice(index, 1);
+        
+        const dataTransfer = new DataTransfer();
+        files.forEach(file => dataTransfer.items.add(file));
+        input.files = dataTransfer.files;
+        
+        const event = new Event('change');
+        input.dispatchEvent(event);
+      }
+    }
+    
+    // 发送邮件
+    function sendEmail() {
+      const sendBtn = document.getElementById('sendBtn');
+      const originalText = sendBtn.textContent;
+      
+      // 验证
+      const recipient = document.getElementById('recipient').value;
+      const subject = document.getElementById('subject').value;
+      const body = document.getElementById('body').value;
+      
+      if (!recipient || !subject || !body) {
+        showStatus('请填写所有必填字段', 'error');
+        return;
+      }
+      
+      if (!isValidEmail(recipient)) {
+        showStatus('收件人邮箱格式不正确', 'error');
+        return;
+      }
+      
+      sendBtn.disabled = true;
+      sendBtn.textContent = '发送中...';
+      
+      const filesInput = document.getElementById('attachments');
+      const files = filesInput.files;
+      
+      // 如果有附件，先上传
+      if (files.length > 0) {
+        uploadFiles(files).then(attachmentData => {
+          sendEmailWithAttachments(recipient, subject, body, attachmentData, sendBtn, originalText);
+        }).catch(error => {
+          showStatus('附件上传失败：' + error.message, 'error');
+          sendBtn.disabled = false;
+          sendBtn.textContent = originalText;
+        });
+      } else {
+        sendEmailWithAttachments(recipient, subject, body, [], sendBtn, originalText);
+      }
+    }
+    
+    // 上传文件
+    function uploadFiles(files) {
+      return new Promise((resolve, reject) => {
+        const totalFiles = files.length;
+        if (totalFiles === 0) {
+          resolve([]);
+          return;
+        }
+        
+        const progressContainer = document.getElementById('uploadProgress');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        
+        progressContainer.style.display = 'block';
+        
+        let uploadedCount = 0;
+        const results = [];
+        
+        function uploadNext() {
+          if (uploadedCount >= totalFiles) {
+            progressContainer.style.display = 'none';
+            resolve(results);
+            return;
+          }
+          
+          const file = files[uploadedCount];
+          const reader = new FileReader();
+          
+          reader.onload = function(e) {
+            const base64Data = e.target.result.split(',')[1];
+            
+            google.script.run
+              .withSuccessHandler(function(result) {
+                if (result.success) {
+                  results.push(result);
+                }
+                
+                uploadedCount++;
+                const progress = Math.round((uploadedCount / totalFiles) * 100);
+                progressFill.style.width = progress + '%';
+                progressText.textContent = progress + '%';
+                
+                uploadNext();
+              })
+              .withFailureHandler(function(error) {
+                reject(error);
+              })
+              .uploadFileToDrive(file.name, base64Data, file.type);
+          };
+          
+          reader.onerror = function() {
+            reject(new Error('文件读取失败'));
+          };
+          
+          reader.readAsDataURL(file);
+        }
+        
+        uploadNext();
+      });
+    }
+    
+    // 发送带附件的邮件
+    function sendEmailWithAttachments(recipient, subject, body, attachmentData, sendBtn, originalText) {
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            showStatus(result.message, 'success');
+            document.getElementById('emailForm').reset();
+            document.getElementById('fileList').innerHTML = '<div style="color: #6c757d; font-style: italic;">无附件</div>';
+          } else {
+            showStatus(result.message, 'error');
+          }
+          sendBtn.disabled = false;
+          sendBtn.textContent = originalText;
+        })
+        .withFailureHandler(function(error) {
+          showStatus('发送失败：' + error.message, 'error');
+          sendBtn.disabled = false;
+          sendBtn.textContent = originalText;
+        })
+        .sendCustomEmail(recipient, subject, body, '', '', attachmentData);
+    }
+    
+    // 模板功能
+    function saveTemplate(name, subject, body) {
+      google.script.run
+        .withSuccessHandler(function(result) {
+          showStatus(result.message, 'success');
+          loadTemplates();
+        })
+        .withFailureHandler(function(error) {
+          showStatus('保存失败：' + error.message, 'error');
+        })
+        .saveTemplate(name, subject, body);
+    }
+    
+    function loadTemplates() {
+      google.script.run
+        .withSuccessHandler(function(templates) {
+          const templatesList = document.getElementById('templatesList');
+          
+          if (templates.length === 0) {
+            templatesList.innerHTML = '<div class="no-templates">暂无模板，请先保存一个模板</div>';
+            return;
+          }
+          
+          templatesList.innerHTML = templates.map((template, index) => `
+            <div class="template-item">
+              <div class="template-header">
+                <span class="template-name">${template.name}</span>
+                <div class="template-actions">
+                  <button class="template-btn btn-secondary" onclick="useTemplate(${index})">使用</button>
+                  <button class="template-btn btn-danger" onclick="deleteTemplate(${index})">删除</button>
+                </div>
+              </div>
+              <div><strong>主题：</strong>${template.subject}</div>
+              <div><strong>内容：</strong>${template.body.substring(0, 100)}...</div>
+              <div><small>创建时间：${new Date(template.created).toLocaleDateString()}</small></div>
+            </div>
+          `).join('');
+        })
+        .getTemplates();
+    }
+    
+    function useTemplate(index) {
+      google.script.run
+        .withSuccessHandler(function(templates) {
+          if (templates[index]) {
+            document.getElementById('subject').value = templates[index].subject;
+            document.getElementById('body').value = templates[index].body;
+            showStatus('模板已加载', 'success');
+          }
+        })
+        .getTemplates();
+    }
+    
+    function deleteTemplate(index) {
+      if (confirm('确定要删除这个模板吗？')) {
+        google.script.run
+          .withSuccessHandler(function(result) {
+            showStatus(result.message, 'success');
+            loadTemplates();
+          })
+          .deleteTemplate(index);
+      }
+    }
+    
+    // 加载最近邮件
+    function loadRecentEmails() {
+      google.script.run
+        .withSuccessHandler(function(emails) {
+          const recentEmails = document.getElementById('recentEmails');
+          
+          if (emails.length === 0) {
+            recentEmails.innerHTML = '<div class="no-templates">暂无最近邮件记录</div>';
+            return;
+          }
+          
+          recentEmails.innerHTML = emails.map(email => `
+            <div class="email-item">
+              <div><strong>收件人：</strong>${email.to}</div>
+              <div><strong>主题：</strong>${email.subject}</div>
+              <div><strong>时间：</strong>${new Date(email.date).toLocaleString()}</div>
+              <div><strong>内容预览：</strong>${email.body}</div>
+            </div>
+          `).join('');
+        })
+        .getRecentEmails(5);
+    }
+    
+    // 显示状态
+    function showStatus(message, type) {
+      const statusDiv = document.getElementById('status');
+      statusDiv.textContent = message;
+      statusDiv.className = 'status ' + type;
+      statusDiv.style.display = 'block';
+      
+      setTimeout(() => {
+        statusDiv.style.display = 'none';
+      }, 5000);
+    }
+    
+    // 验证邮箱
+    function isValidEmail(email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    }
+  </script>
+</body>
+</html>
